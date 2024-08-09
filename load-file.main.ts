@@ -76,7 +76,12 @@ export const loadFile = async(csvPath: string) => {
         "dd/MM/yyyy"
       ).toISO();
 
-      combinedTsp = isoTsp || localisedTsp
+      const literalMonthTsp = DateTime.fromFormat(
+        dateString,
+        "dd-MMM-yyyy"
+      ).toISO();
+
+      combinedTsp = isoTsp || localisedTsp || literalMonthTsp
       if (!combinedTsp) {
         problematicRows.push({
           row: spendDataRow,
