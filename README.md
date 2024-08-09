@@ -155,8 +155,9 @@ Will be this:
 
 As for further validations, given some more time I would have added specific validations to each property of the date model.
  - We have some validations but those can be improved/extended
- - The data model can include more data if needed
+ - The data model can include more data if needed, plus storing suppliers in a different table can benefit the system in the long run
+   Moving the suppliers to a different table can allow us to have multiple names to the same supplier, preventing duplications. Same for the buyers
  - I've noticed that amount can be negative, not sure if correct or not but can be worth some investigating/corrections
- - A good addition can be adding data formatting to the incoming data befor it is stored inn the DB
+ - A good addition can be adding data formatting to the incoming data before it is stored inn the DB
 
 Some more changes I would have liked to do would be some more structural changes, folder structure, separating logic from the controller, separating the controller from the express server initialization etc.
