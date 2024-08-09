@@ -1,0 +1,7 @@
+node_modules/
+.prettierrc.json
+db.sqlite3
+
+.vscode
+
+extracted_files
