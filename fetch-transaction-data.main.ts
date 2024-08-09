@@ -8,8 +8,8 @@ import {
 import {
     CombinedSourcesInterface,
     Dictionary,
-    SourceContainer,
-    SourceDescriptor
+    isSourceContainer,
+    isSourceDescriptor
 } from './models'
 
 async function performFilterStep(
@@ -54,14 +54,14 @@ async function handleLinkContents(
     mapSection: CombinedSourcesInterface
 ) {
     try {
-        const mapContainer = (mapSection as SourceContainer).container
-        const mapFilter = (mapSection as SourceDescriptor).filter
-        if (mapContainer) {
+        if (isSourceContainer(mapSection)) {
+            const mapContainer = mapSection.container
             await handleLinkContents(
                 data[mapSection.propertyName],
                 mapContainer
             )
-        } else if (mapFilter) {
+        } else if (isSourceDescriptor(mapSection)) {
+            const mapFilter = mapSection.filter
             await performFilterStep(data, mapSection, mapFilter)
         } else {
             const allEntries: Dictionary[] = data[mapSection.propertyName]
@@ -83,55 +83,63 @@ async function handleLinkContents(
 }
 
 export async function fetchTransactionData() {
-    const sourcesMap: { [rootLink: string]: CombinedSourcesInterface } = {
-        'https://www.gov.uk/api/content/government/collections/spending-over-25-000':
-            {
-                propertyName: 'links',
-                container: {
-                    propertyName: 'documents',
-                    filter: {
-                        filterProperty: 'title',
-                        ref: {
-                            urlProperty: 'api_url',
-                            newSource: {
-                                propertyName: 'details',
-                                container: {
-                                    propertyName: 'attachments',
-                                    filePropertyName: 'url'
+    try {
+        const sourcesMap: { [rootLink: string]: CombinedSourcesInterface } = {
+            'https://www.gov.uk/api/content/government/collections/spending-over-25-000':
+                {
+                    propertyName: 'links',
+                    container: {
+                        propertyName: 'documents',
+                        filter: {
+                            filterProperty: 'title',
+                            ref: {
+                                urlProperty: 'api_url',
+                                newSource: {
+                                    propertyName: 'details',
+                                    container: {
+                                        propertyName: 'attachments',
+                                        filePropertyName: 'url'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+            'https://www.gov.uk/api/content/government/collections/dfe-department-and-executive-agency-spend-over-25-000':
+                {
+                    propertyName: 'links',
+                    container: {
+                        propertyName: 'documents',
+                        filter: {
+                            filterProperty: 'title',
+                            ref: {
+                                urlProperty: 'api_url',
+                                newSource: {
+                                    propertyName: 'details',
+                                    container: {
+                                        propertyName: 'attachments',
+                                        filter: {
+                                            filterProperty: 'title'
+                                        },
+                                        filePropertyName: 'url'
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            },
-        'https://www.gov.uk/api/content/government/collections/dfe-department-and-executive-agency-spend-over-25-000':
-            {
-                propertyName: 'links',
-                container: {
-                    propertyName: 'documents',
-                    filter: {
-                        filterProperty: 'title',
-                        ref: {
-                            urlProperty: 'api_url',
-                            newSource: {
-                                propertyName: 'details',
-                                container: {
-                                    propertyName: 'attachments',
-                                    filter: {
-                                        filterProperty: 'title'
-                                    },
-                                    filePropertyName: 'url'
-                                }
-                            }
-                        }
-                    }
-                }
+        }
+        for (const link in sourcesMap) {
+            try {
+                const responseData = await fetchLinkContents(link)
+                await handleLinkContents(responseData, sourcesMap[link])
+                iterateOverExtractedFiles()
+            } catch (err) {
+                console.error(`Failed handling link: ${link}`)
             }
-    }
-    for (const link in sourcesMap) {
-        const responseData = await fetchLinkContents(link)
-        await handleLinkContents(responseData, sourcesMap[link])
-        iterateOverExtractedFiles()
+        }
+    } catch (err) {
+        console.error(`Failed fetching transaction data`, err)
     }
 }
 

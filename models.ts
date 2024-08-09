@@ -17,7 +17,17 @@ export interface SourceDescriptor extends Section {
     }
 }
 
-export type CombinedSourcesInterface = Section | SourceContainer | SourceDescriptor
+export type CombinedSourcesInterface =
+    | Section
+    | SourceContainer
+    | SourceDescriptor
+
+export const isSourceContainer = (object: any): object is SourceContainer => {
+    return 'container' in object
+}
+export const isSourceDescriptor = (object: any): object is SourceDescriptor => {
+    return 'filter' in object
+}
 
 export type Dictionary = {
     [key: string]: any
